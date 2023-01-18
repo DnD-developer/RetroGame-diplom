@@ -31,6 +31,12 @@ export default class GameController {
 		this.renderUnitsOnBoard(opponentTeam.characters, positionLock, opponentTeamStartsPositions)
 
 		this.gamePlay.redrawPositions(this.unitsWithPosition)
+		this.addEvents()
+	}
+
+	addEvents() {
+		this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this))
+		this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this))
 	}
 
 	generateCollectionsStartPositions(start) {
@@ -65,15 +71,28 @@ export default class GameController {
 		}
 	}
 
+	generateMessage(level, attack, defence, health) {
+		return `\u{1F396} ${level} \u{1F5E1} ${attack} \u{1F6E1} ${defence} \u{2764} ${health}`
+	}
+
 	onCellClick(index) {
 		// TODO: react to click
 	}
 
 	onCellEnter(index) {
-		// TODO: react to mouse enter
+		const indexUnitofArray = this.unitsWithPosition.findIndex(unit => unit.position === index)
+		if (indexUnitofArray !== -1) {
+			const message = this.generateMessage(
+				this.unitsWithPosition[indexUnitofArray].character.level,
+				this.unitsWithPosition[indexUnitofArray].character.attack,
+				this.unitsWithPosition[indexUnitofArray].character.defence,
+				this.unitsWithPosition[indexUnitofArray].character.health
+			)
+			this.gamePlay.showCellTooltip(message, index)
+		}
 	}
 
 	onCellLeave(index) {
-		// TODO: react to mouse leave
+		this.gamePlay.hideCellTooltip(index)
 	}
 }

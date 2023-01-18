@@ -21,11 +21,6 @@ export default class GamePlay {
 		this.container = container
 	}
 
-	/**
-	 * Draws boardEl with specific theme
-	 *
-	 * @param theme
-	 */
 	drawUi(theme) {
 		this.checkBinding()
 
