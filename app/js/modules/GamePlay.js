@@ -63,11 +63,6 @@ export default class GamePlay {
 		this.cells = Array.from(this.boardEl.children)
 	}
 
-	/**
-	 * Draws positions (with chars) on boardEl
-	 *
-	 * @param positions array of PositionedCharacter objects
-	 */
 	redrawPositions(positions) {
 		for (const cell of this.cells) {
 			cell.innerHTML = ""
