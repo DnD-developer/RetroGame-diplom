@@ -1,5 +1,6 @@
 export default class GameState {
 	static countMove = 0
+	static currentUnit = null
 
 	static current() {
 		if (this.countMove % 2 === 0) {
@@ -11,5 +12,9 @@ export default class GameState {
 
 	static upMove() {
 		this.countMove += 1
+	}
+
+	static setCurrentUnit(object) {
+		this.currentUnit = object
 	}
 }

@@ -8,6 +8,8 @@ import Magician from "./characters/Magician"
 import Vampire from "./characters/Vampire"
 import Undead from "./characters/Undead"
 import Bowman from "./characters/Bowman"
+import cursors from "./cursors"
+import checkUnitInCell, { checkPlayerTeam, generateMessage } from "../services/serviceGameVontroller"
 
 export default class GameController {
 	constructor(gamePlay, stateService) {
@@ -73,36 +75,71 @@ export default class GameController {
 		}
 	}
 
-	generateMessage(level, attack, defence, health) {
-		return `\u{1F396} ${level} \u{1F5E1} ${attack} \u{1F6E1} ${defence} \u{2764} ${health}`
+	createInformation(indexUnitOfArray, index) {
+		const unit = this.unitsWithPosition[indexUnitOfArray].character
+		const message = generateMessage(unit.level, unit.attack, unit.defence, unit.health)
+		this.gamePlay.showCellTooltip(message, index)
 	}
 
-	onCellClick(index) {
-		this.removeSelect()
-		const indexUnitofArray = this.unitsWithPosition.findIndex(unit => unit.position === index)
-		if (indexUnitofArray !== -1) {
-			const unit = this.unitsWithPosition[indexUnitofArray].character
-			if (unit.type === "bowman" || unit.type === "swordsman" || unit.type === "magician") {
+	selectedUnit(indexUnit, index) {
+		GameState.setCurrentUnit(null)
+		const unit = this.unitsWithPosition[indexUnit].character
+
+		if (checkPlayerTeam(unit)) {
+			this.gamePlay.deselectCell(index)
+			this.gamePlay.selectCell(index)
+		} else {
+			this.gamePlay.showError("Персонаж противника", index)
+		}
+	}
+	removeSelect() {
+		this.unitsWithPosition.forEach(unit => this.gamePlay.deselectCell(unit.position))
+	}
+
+	deleteCursorNotification() {
+		for (let index = 0; index < this.gamePlay.boardSize * this.gamePlay.boardSize; index += 1) {
+			if (GameState.currentUnit.position !== index) {
 				this.gamePlay.deselectCell(index)
-				this.gamePlay.selectCell(index)
-			} else {
-				this.gamePlay.showError("Персонаж противника", index)
 			}
 		}
 	}
 
-	removeSelect() {
-		this.unitsWithPosition.forEach(unitPos => {
-			this.gamePlay.deselectCell(unitPos.position)
-		})
+	setCursorNotification(index) {
+		this.deleteCursorNotification()
+
+		if (checkUnitInCell.call(this, index).check) {
+			if (checkPlayerTeam(this.unitsWithPosition[checkUnitInCell.call(this, index).index].character)) {
+				this.gamePlay.setCursor(cursors.pointer)
+			} else {
+				this.gamePlay.setCursor(cursors.crosshair)
+				this.gamePlay.selectCell(index, "red")
+			}
+		} else {
+			this.gamePlay.setCursor(cursors.pointer)
+			this.gamePlay.selectCell(index, "green")
+		}
+	}
+
+	onCellClick(index) {
+		this.removeSelect()
+		if (GameState.current()) {
+			if (checkUnitInCell.call(this, index).check) {
+				this.selectedUnit(checkUnitInCell.call(this, index).index, index)
+
+				GameState.setCurrentUnit(this.unitsWithPosition[checkUnitInCell.call(this, index).index])
+			} else if (GameState.currentUnit) {
+				// GameState.upMove()
+			}
+		}
 	}
 
 	onCellEnter(index) {
-		const indexUnitofArray = this.unitsWithPosition.findIndex(unit => unit.position === index)
-		if (indexUnitofArray !== -1) {
-			const unit = this.unitsWithPosition[indexUnitofArray].character
-			const message = this.generateMessage(unit.level, unit.attack, unit.defence, unit.health)
-			this.gamePlay.showCellTooltip(message, index)
+		if (checkUnitInCell.call(this, index).check) {
+			this.createInformation(checkUnitInCell.call(this, index).index, index)
+		}
+
+		if (GameState.currentUnit) {
+			this.setCursorNotification(index)
 		}
 	}
 
