@@ -167,12 +167,29 @@ export default class GamePlay {
 		this.loadGameListeners.forEach(o => o.call(null))
 	}
 
-	static showError(message) {
-		alert(message)
+	showError(message, index) {
+		this.cells[index].appendChild(this.createNotification(message))
 	}
 
-	static showMessage(message) {
-		alert(message)
+	showMessage(message, index) {}
+
+	createNotification(message) {
+		const popup = document.createElement("div")
+		popup.classList.add("notification-popup")
+		popup.style.cssText = `
+			position: relative;
+			top: -80%;
+			left: -100%;
+			transform: translateX(50%);
+			width: 150%;
+			height: 80%;
+			text-align: center;
+			color: red;
+			background-color: white;
+		`
+		popup.textContent = message
+
+		return popup
 	}
 
 	selectCell(index, color = "yellow") {
@@ -183,6 +200,9 @@ export default class GamePlay {
 	deselectCell(index) {
 		const cell = this.cells[index]
 		cell.classList.remove(...Array.from(cell.classList).filter(o => o.startsWith("selected")))
+		if (cell.querySelector(".notification-popup")) {
+			cell.querySelector(".notification-popup").remove()
+		}
 	}
 
 	showCellTooltip(message, index) {

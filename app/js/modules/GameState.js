@@ -1,6 +1,15 @@
 export default class GameState {
-	static from(object) {
-		// TODO: create object
-		return null
+	static countMove = 0
+
+	static current() {
+		if (this.countMove % 2 === 0) {
+			return false
+		}
+
+		return true
+	}
+
+	static upMove() {
+		this.countMove += 1
 	}
 }

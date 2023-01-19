@@ -1,4 +1,5 @@
 import themes from "./themes"
+import GameState from "./GameState"
 import PositionedCharacter from "./PositionedCharacter"
 import { generateTeam } from "./generators"
 import Daemon from "./characters/Daemon"
@@ -16,11 +17,12 @@ export default class GameController {
 
 	init() {
 		this.gamePlay.drawUi(themes.prairie)
+		GameState.upMove()
 		this.unitsWithPosition = []
-
 		const playerTeamCharacters = [Bowman, Swordsman, Magician]
 		const opponentTeamCharacters = [Vampire, Undead, Daemon]
 		const positionLock = []
+
 		const playerTeamStartsPositions = this.generateCollectionsStartPositions(0)
 		const opponentTeamStartsPositions = this.generateCollectionsStartPositions(this.gamePlay.boardSize - 2)
 
@@ -29,7 +31,6 @@ export default class GameController {
 
 		this.renderUnitsOnBoard(playerTeam.characters, positionLock, playerTeamStartsPositions)
 		this.renderUnitsOnBoard(opponentTeam.characters, positionLock, opponentTeamStartsPositions)
-
 		this.gamePlay.redrawPositions(this.unitsWithPosition)
 		this.addEvents()
 	}
@@ -37,6 +38,7 @@ export default class GameController {
 	addEvents() {
 		this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this))
 		this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this))
+		this.gamePlay.addCellClickListener(this.onCellClick.bind(this))
 	}
 
 	generateCollectionsStartPositions(start) {
@@ -76,18 +78,30 @@ export default class GameController {
 	}
 
 	onCellClick(index) {
-		// TODO: react to click
+		this.removeSelect()
+		const indexUnitofArray = this.unitsWithPosition.findIndex(unit => unit.position === index)
+		if (indexUnitofArray !== -1) {
+			const unit = this.unitsWithPosition[indexUnitofArray].character
+			if (unit.type === "bowman" || unit.type === "swordsman" || unit.type === "magician") {
+				this.gamePlay.deselectCell(index)
+				this.gamePlay.selectCell(index)
+			} else {
+				this.gamePlay.showError("Персонаж противника", index)
+			}
+		}
+	}
+
+	removeSelect() {
+		this.unitsWithPosition.forEach(unitPos => {
+			this.gamePlay.deselectCell(unitPos.position)
+		})
 	}
 
 	onCellEnter(index) {
 		const indexUnitofArray = this.unitsWithPosition.findIndex(unit => unit.position === index)
 		if (indexUnitofArray !== -1) {
-			const message = this.generateMessage(
-				this.unitsWithPosition[indexUnitofArray].character.level,
-				this.unitsWithPosition[indexUnitofArray].character.attack,
-				this.unitsWithPosition[indexUnitofArray].character.defence,
-				this.unitsWithPosition[indexUnitofArray].character.health
-			)
+			const unit = this.unitsWithPosition[indexUnitofArray].character
+			const message = this.generateMessage(unit.level, unit.attack, unit.defence, unit.health)
 			this.gamePlay.showCellTooltip(message, index)
 		}
 	}
