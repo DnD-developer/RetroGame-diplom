@@ -2,14 +2,8 @@ import themes from "./themes"
 import GameState from "./GameState"
 import PositionedCharacter from "./PositionedCharacter"
 import { generateTeam } from "./generators"
-import Daemon from "./characters/Daemon"
-import Swordsman from "./characters/Swordsman"
-import Magician from "./characters/Magician"
-import Vampire from "./characters/Vampire"
-import Undead from "./characters/Undead"
-import Bowman from "./characters/Bowman"
 import cursors from "./cursors"
-import checkUnitInCell, { checkPlayerTeam, generateMessage } from "../services/serviceGameVontroller"
+import checkUnitInCell, { checkPlayerTeam, generateMessage } from "../services/serviceGameController"
 
 export default class GameController {
 	constructor(gamePlay, stateService) {
@@ -21,8 +15,8 @@ export default class GameController {
 		this.gamePlay.drawUi(themes.prairie)
 		GameState.upMove()
 		this.unitsWithPosition = []
-		const playerTeamCharacters = [Bowman, Swordsman, Magician]
-		const opponentTeamCharacters = [Vampire, Undead, Daemon]
+		const playerTeamCharacters = ["bowman", "swordsman", "magician"]
+		const opponentTeamCharacters = ["vampire", "undead", "daemon"]
 		const positionLock = []
 
 		const playerTeamStartsPositions = this.generateCollectionsStartPositions(0)
