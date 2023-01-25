@@ -14,12 +14,12 @@ describe("Class Character", () => {
 
 describe("Scion of Character", () => {
 	test.each([
-		[Bowman, { level: 1, type: "bowman", health: 50, attack: 25, defence: 25 }],
-		[Swordsman, { level: 1, type: "swordsman", health: 50, attack: 40, defence: 10 }],
-		[Magician, { level: 1, type: "magician", health: 50, attack: 10, defence: 40 }],
-		[Vampire, { level: 1, type: "vampire", health: 50, attack: 25, defence: 25 }],
-		[Undead, { level: 1, type: "undead", health: 50, attack: 40, defence: 10 }],
-		[Daemon, { level: 1, type: "daemon", health: 50, attack: 10, defence: 10 }]
+		[Bowman, { level: 1, type: "bowman", health: 50, attack: 25, defence: 25, move: 2, lenghtAttack: 2 }],
+		[Swordsman, { level: 1, type: "swordsman", health: 50, attack: 40, defence: 10, move: 4, lenghtAttack: 1 }],
+		[Magician, { level: 1, type: "magician", health: 50, attack: 10, defence: 40, move: 1, lenghtAttack: 4 }],
+		[Vampire, { level: 1, type: "vampire", health: 50, attack: 25, defence: 25, move: 2, lenghtAttack: 2 }],
+		[Undead, { level: 1, type: "undead", health: 50, attack: 40, defence: 10, move: 4, lenghtAttack: 1 }],
+		[Daemon, { level: 1, type: "daemon", health: 50, attack: 10, defence: 10, move: 1, lenghtAttack: 4 }]
 	])("test correct create class %i", (TestClass, expected) => {
 		const result = new TestClass(1)
 

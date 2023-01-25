@@ -1,5 +1,5 @@
 import Bowman from "../modules/characters/Bowman"
-import { generateMessage } from "../services/serviceGameController"
+import { generateMessage } from "../services/serviceBasesForGame"
 
 describe("Class GameController", () => {
 	test("test message of unit options", () => {
