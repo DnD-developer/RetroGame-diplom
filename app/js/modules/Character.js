@@ -10,6 +10,6 @@ export default class Character {
 		this.health = 50
 		this.type = type
 		this.move = move
-		this.lenghtAttack = attackLength
+		this.lengthAttack = attackLength
 	}
 }

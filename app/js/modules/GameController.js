@@ -33,8 +33,18 @@ export default class GameController {
 		renderUnitsOnBoard.call(this, opponentTeam.characters, positionLock, opponentTeamStartsPositions)
 		this.gamePlay.redrawPositions(this.unitsWithPosition)
 		this.addEvents()
+		this.createBoardMatrix()
 	}
 
+	createBoardMatrix() {
+		this.cellsMatrix = []
+
+		this.gamePlay.cells.forEach((cell, id) => {
+			const stringNumber = Math.trunc(id / this.gamePlay.boardSize) + 1
+			const callNumber = id - this.gamePlay.boardSize * (stringNumber - 1) + 1
+			this.cellsMatrix.push({ stringNumber, callNumber })
+		})
+	}
 	addEvents() {
 		this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this))
 		this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this))
@@ -46,7 +56,7 @@ export default class GameController {
 		deleteCursorNotification.call(this)
 		if (GameState.current()) {
 			if (checkUnitInCell.call(this, index).check) {
-				selectedUnit.call(this, checkUnitInCell.call(this, index).index, index, this.gamePlay, this.unitsWithPosition)
+				selectedUnit.call(this, checkUnitInCell.call(this, index).index, index)
 				if (checkPlayerTeam(this.unitsWithPosition[checkUnitInCell.call(this, index).index].character)) {
 					GameState.setCurrentUnit(this.unitsWithPosition[checkUnitInCell.call(this, index).index])
 				}

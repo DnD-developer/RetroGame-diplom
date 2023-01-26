@@ -41,6 +41,7 @@
 		"max-len": [0],
 		"no-underscore-dangle": [0],
 		"lines-between-class-members": [0],
-		"no-alert": [0]
+		"no-alert": [0],
+		"no-loop-func": [0]
 	}
 }
