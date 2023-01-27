@@ -2,12 +2,13 @@ import themes from "./themes"
 import GameState from "./GameState"
 import { generateTeam } from "./generators"
 import checkUnitInCell, {
-	checkPlayerTeam,
 	createInformation,
 	generateCollectionsStartPositions,
-	renderUnitsOnBoard
+	renderUnitsOnBoard,
+	checkPlayerTeam
 } from "../services/serviceBasesForGame"
 import { selectedUnit, removeSelect, setCursorNotification, deleteCursorNotification } from "../services/serviceForSelectedUnit"
+import checkPotentialMove, { checkPotentialAttack, movingUnit, attackUnit } from "../services/serviceForMoveAndAttack"
 
 export default class GameController {
 	constructor(gamePlay, stateService) {
@@ -18,7 +19,9 @@ export default class GameController {
 	init() {
 		this.gamePlay.drawUi(themes.prairie)
 		GameState.upMove()
+
 		this.unitsWithPosition = []
+
 		const playerTeamCharacters = ["bowman", "swordsman", "magician"]
 		const opponentTeamCharacters = ["vampire", "undead", "daemon"]
 		const positionLock = []
@@ -45,6 +48,7 @@ export default class GameController {
 			this.cellsMatrix.push({ stringNumber, callNumber })
 		})
 	}
+
 	addEvents() {
 		this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this))
 		this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this))
@@ -54,14 +58,30 @@ export default class GameController {
 	onCellClick(index) {
 		removeSelect.call(this)
 		deleteCursorNotification.call(this)
+
 		if (GameState.current()) {
-			if (checkUnitInCell.call(this, index).check) {
-				selectedUnit.call(this, checkUnitInCell.call(this, index).index, index)
-				if (checkPlayerTeam(this.unitsWithPosition[checkUnitInCell.call(this, index).index].character)) {
-					GameState.setCurrentUnit(this.unitsWithPosition[checkUnitInCell.call(this, index).index])
+			const coreCell = checkUnitInCell.call(this, index)
+
+			if (coreCell.check) {
+				const unitWithPositionInCell = this.unitsWithPosition[coreCell.index]
+
+				if (checkPlayerTeam(unitWithPositionInCell.character)) {
+					selectedUnit.call(this, index, true)
+					GameState.setCurrentUnit(unitWithPositionInCell)
+				} else if (GameState.currentUnit) {
+					if (checkPotentialAttack.call(this, GameState.currentUnit, index)) {
+						attackUnit.call(this, GameState.currentUnit, index)
+					}
+					GameState.deleteCurrentUnit()
+				} else {
+					selectedUnit.call(this, index, false)
 				}
 			} else if (GameState.currentUnit) {
+				if (checkPotentialMove.call(this, GameState.currentUnit, index)) {
+					movingUnit.call(this, GameState.currentUnit, index)
+				}
 				GameState.deleteCurrentUnit()
+
 				// GameState.upMove()
 			}
 		}

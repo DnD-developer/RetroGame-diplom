@@ -20,3 +20,21 @@ export function checkPotentialAttack(unitWithPosition, indexCursor) {
 
 	return false
 }
+
+export function movingUnit(unitWithPosition, indexCursor) {
+	unitWithPosition.position = indexCursor
+
+	this.gamePlay.redrawPositions(this.unitsWithPosition)
+}
+
+export async function attackUnit(unitWithPosition, indexCursor) {
+	const unit = unitWithPosition.character
+	const opponent = this.unitsWithPosition.find(elem => elem.position === indexCursor).character
+	const damage = Math.max(unit.attack - opponent.defence, unit.attack * 0.1)
+
+	await this.gamePlay.showDamage(indexCursor, unit.attack)
+
+	opponent.health -= damage
+
+	this.gamePlay.redrawPositions(this.unitsWithPosition)
+}
