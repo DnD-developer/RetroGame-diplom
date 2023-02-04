@@ -1,5 +1,5 @@
 # Retro Game Diplom for Netology
 
-![example workflow](https://github.com/DnD-developer/RetroGame-diplom/actions/workflows/deployment_native_JS.yml/badge.svg?branch=master?event=push)
+![CI](https://github.com/DnD-developer/RetroGame-diplom/actions/workflows/deploy.yml/badge.svg?branch=master)
 
-![example workflow](https://github.com/DnD-developer/RetroGame-diplom/actions/workflows/deployment_native_JS.yml/badge.svg?branch=dev?event=push)
+![CI](https://github.com/DnD-developer/RetroGame-diplom/actions/workflows/build.yml/badge.svg?branch=dev)
