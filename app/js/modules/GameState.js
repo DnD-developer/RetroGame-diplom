@@ -17,4 +17,8 @@ export default class GameState {
 	static setCurrentUnit(object) {
 		this.currentUnit = object
 	}
+
+	static deleteCurrentUnit() {
+		this.currentUnit = null
+	}
 }

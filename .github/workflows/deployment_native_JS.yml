@@ -1,0 +1,109 @@
+name: Deploy native JS App
+
+on: push
+  bransches:
+    - dev
+    - master
+  paths-ignore:
+    - "./.gitignore"
+    - "./.github/*"
+    - "./.eslintrc"
+    - "./.eslintignore"
+
+jobs:
+  test_App:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get repository code
+        uses: actions/checkout@v3
+
+      - name: Cache Install
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ hashFiles(" **/package-lock.json ") }} - cashes
+
+      - name: Install dependecies
+        run: npm ci
+
+      - name: Test application
+        run: npm run test
+
+  lint_App:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get repository code
+        uses: actions/checkout@v3
+
+      - name: Cache Install
+          uses: actions/cache@v3
+          with:
+            path: ~/.npm
+            key: ${{ hashFiles(" **/package-lock.json ") }} - cashes
+
+      - name: Install dependecies
+        run: npm ci
+
+      - name: Lint application
+        run: npm run lint
+
+  build_App:
+    needs: [lint_App, test_App]
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Get repository code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache Install
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ hashFiles(" **/package-lock.json ") }} - cashes
+
+      - name: Install dependecies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: dist
+          name: production
+
+  deploy App:
+    needs: build_App
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
+

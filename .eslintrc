@@ -30,7 +30,6 @@
 		"import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
 		"object-curly-newline": ["error", { "consistent": true }],
 		"max-classes-per-file": ["error", 150],
-		"no-console": ["error", { "allow": ["warn", "log", "error"] }],
 		"class-methods-use-this": [0],
 		"no-unused-vars": ["error", { "vars": "local", "args": "none" }],
 		"generator-star-spacing": [0],
@@ -41,6 +40,8 @@
 		"max-len": [0],
 		"no-underscore-dangle": [0],
 		"lines-between-class-members": [0],
-		"no-alert": [0]
+		"no-alert": [0],
+		"no-loop-func": [0],
+		"no-param-reassign": ["error", { "props": false }]
 	}
 }

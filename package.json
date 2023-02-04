@@ -7,7 +7,7 @@
 		"dev": "webpack-dev-server --open --config webpack/webpack.dev.js",
 		"build": "webpack --config webpack/webpack.prod.js",
 		"test": "jest",
-		"lint": "eslint ."
+		"lint": "eslint ./config"
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.19.3",
