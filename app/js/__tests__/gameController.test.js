@@ -16,6 +16,7 @@ describe("Bases Logic", () => {
 })
 
 const cellsObjectMatrix = {
+	unitsWithPosition: [],
 	cellsMatrix: [
 		{ stringNumber: 1, callNumber: 1 },
 		{ stringNumber: 1, callNumber: 2 },
@@ -194,7 +195,7 @@ describe("Attack", () => {
 			className: new Vampire(1),
 			result: calculateResult(2)
 		}
-	])("test potential move for $unit", ({ className, result }) => {
+	])("test potential attack for $unit", ({ className, result }) => {
 		const boardMove = []
 		for (let i = 0; i < 64; i += 1) {
 			if (checkPotentialAttack.call(cellsObjectMatrix, { position: start, character: className }, i)) {

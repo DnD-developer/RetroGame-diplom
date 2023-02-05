@@ -9,6 +9,7 @@ import checkUnitInCell, {
 } from "../services/serviceBasesForGame"
 import { selectedUnit, removeSelect, setCursorNotification, deleteCursorNotification } from "../services/serviceForSelectedUnit"
 import checkPotentialMove, { checkPotentialAttack, movingUnit, attackUnit } from "../services/serviceForMoveAndAttack"
+import choiceOpponentUnit from "../services/serviceComputerMove"
 
 export default class GameController {
 	constructor(gamePlay, stateService) {
@@ -22,15 +23,15 @@ export default class GameController {
 
 		this.unitsWithPosition = []
 
-		const playerTeamCharacters = ["bowman", "swordsman", "magician"]
-		const opponentTeamCharacters = ["vampire", "undead", "daemon"]
+		this.playerTeamCharacters = ["bowman", "swordsman", "magician"]
+		this.opponentTeamCharacters = ["vampire", "undead", "daemon"]
 		const positionLock = []
 
 		const playerTeamStartsPositions = generateCollectionsStartPositions(0, this.gamePlay.boardSize)
 		const opponentTeamStartsPositions = generateCollectionsStartPositions(this.gamePlay.boardSize - 2, this.gamePlay.boardSize)
 
-		const playerTeam = generateTeam(playerTeamCharacters, 1, 4)
-		const opponentTeam = generateTeam(opponentTeamCharacters, 1, 4)
+		const playerTeam = generateTeam(this.playerTeamCharacters, 1, 4)
+		const opponentTeam = generateTeam(this.opponentTeamCharacters, 1, 4)
 
 		renderUnitsOnBoard.call(this, playerTeam.characters, positionLock, playerTeamStartsPositions)
 		renderUnitsOnBoard.call(this, opponentTeam.characters, positionLock, opponentTeamStartsPositions)
@@ -73,6 +74,13 @@ export default class GameController {
 						attackUnit.call(this, GameState.currentUnit, index)
 					}
 					GameState.deleteCurrentUnit()
+					GameState.upMove()
+					setTimeout(() => {
+						if (!GameState.current()) {
+							choiceOpponentUnit.call(this)
+							GameState.upMove()
+						}
+					}, 1000)
 				} else {
 					selectedUnit.call(this, index, false)
 				}
@@ -81,8 +89,13 @@ export default class GameController {
 					movingUnit.call(this, GameState.currentUnit, index)
 				}
 				GameState.deleteCurrentUnit()
-
-				// GameState.upMove()
+				GameState.upMove()
+				setTimeout(() => {
+					if (!GameState.current()) {
+						choiceOpponentUnit.call(this)
+						GameState.upMove()
+					}
+				}, 1000)
 			}
 		}
 	}
