@@ -1,4 +1,6 @@
+import GameState from "../modules/GameState"
 import PositionedCharacter from "../modules/PositionedCharacter"
+import { generateTeam } from "../modules/generators"
 
 export default function checkUnitInCell(index) {
 	const indexUnitOfArray = this.unitsWithPosition.findIndex(unit => unit.position === index)
@@ -50,6 +52,42 @@ export function generateCollectionsStartPositions(start, boardSize) {
 	}
 
 	return positions
+}
+
+export function initUnitsOfTeamWithPosition() {
+	this.unitsWithPositionPlayer = []
+	this.unitsWithPositionOpponent = []
+
+	this.unitsWithPosition.forEach(unit => {
+		if (this.playerTeamCharacters.includes(unit.character.type)) {
+			this.unitsWithPositionPlayer.push(unit)
+		}
+	})
+
+	this.unitsWithPosition.forEach(unit => {
+		if (this.opponentTeamCharacters.includes(unit.character.type)) {
+			this.unitsWithPositionOpponent.push(unit)
+		}
+	})
+}
+
+export function levelUp() {
+	this.playerTeam = []
+	GameState.currentLevel += 1
+
+	this.unitsWithPositionPlayer.forEach(unit => {
+		unit.character.level = GameState.currentLevel
+		unit.character.upAttack()
+		unit.character.upHealth()
+		this.playerTeam.push(unit.character)
+	})
+
+	this.opponentTeam = generateTeam(this.opponentTeamCharacters, GameState.currentLevel, 4)
+	const positionLock = []
+
+	this.initNewGame(positionLock)
+
+	GameState.triggerNewGame = false
 }
 
 export function renderUnitsOnBoard(team, lock, startPositions) {

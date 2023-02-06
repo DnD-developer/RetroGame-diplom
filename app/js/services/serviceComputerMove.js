@@ -183,21 +183,6 @@ function definePotentialAttack() {
 }
 
 export default function choiceOpponentUnit() {
-	this.unitsWithPositionPlayer = []
-	this.unitsWithPositionOpponent = []
-
-	this.unitsWithPosition.forEach(unit => {
-		if (this.playerTeamCharacters.includes(unit.character.type)) {
-			this.unitsWithPositionPlayer.push(unit)
-		}
-	})
-
-	this.unitsWithPosition.forEach(unit => {
-		if (this.opponentTeamCharacters.includes(unit.character.type)) {
-			this.unitsWithPositionOpponent.push(unit)
-		}
-	})
-
 	this.minHealthPlayerUnit = choiseNearUnitForGoal.call(this, {
 		goal: selectMinUnit(this.unitsWithPositionPlayer, "health"),
 		teamArray: this.unitsWithPositionOpponent

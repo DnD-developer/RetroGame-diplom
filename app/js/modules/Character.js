@@ -11,5 +11,19 @@ export default class Character {
 		this.type = type
 		this.move = move
 		this.lengthAttack = attackLength
+
+		for (let l = 2; l <= this.level; l += 1) {
+			this.upAttack()
+			this.upHealth()
+		}
+	}
+
+	upAttack() {
+		this.attack = Math.floor(Math.max(this.attack, (this.attack * (80 + this.health)) / 100))
+	}
+
+	upHealth() {
+		this.health += 80
+		this.health = this.health > 100 ? 100 : this.health
 	}
 }

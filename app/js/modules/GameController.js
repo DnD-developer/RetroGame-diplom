@@ -1,4 +1,3 @@
-import themes from "./themes"
 import GameState from "./GameState"
 import { generateTeam } from "./generators"
 import checkUnitInCell, {
@@ -18,26 +17,34 @@ export default class GameController {
 	}
 
 	init() {
-		this.gamePlay.drawUi(themes.prairie)
-		GameState.upMove()
+		GameState.currentLevel = 1
 
 		this.unitsWithPosition = []
 
 		this.playerTeamCharacters = ["bowman", "swordsman", "magician"]
 		this.opponentTeamCharacters = ["vampire", "undead", "daemon"]
+
+		this.playerTeamStartsPositions = generateCollectionsStartPositions(0, this.gamePlay.boardSize)
+		this.opponentTeamStartsPositions = generateCollectionsStartPositions(this.gamePlay.boardSize - 2, this.gamePlay.boardSize)
+
+		this.playerTeam = generateTeam(this.playerTeamCharacters, 1, 4)
+		this.opponentTeam = generateTeam(this.opponentTeamCharacters, 1, 1)
+
 		const positionLock = []
-
-		const playerTeamStartsPositions = generateCollectionsStartPositions(0, this.gamePlay.boardSize)
-		const opponentTeamStartsPositions = generateCollectionsStartPositions(this.gamePlay.boardSize - 2, this.gamePlay.boardSize)
-
-		const playerTeam = generateTeam(this.playerTeamCharacters, 1, 4)
-		const opponentTeam = generateTeam(this.opponentTeamCharacters, 1, 4)
-
-		renderUnitsOnBoard.call(this, playerTeam.characters, positionLock, playerTeamStartsPositions)
-		renderUnitsOnBoard.call(this, opponentTeam.characters, positionLock, opponentTeamStartsPositions)
-		this.gamePlay.redrawPositions(this.unitsWithPosition)
-		this.addEvents()
+		this.initNewGame(positionLock)
 		this.createBoardMatrix()
+	}
+
+	initNewGame(lock) {
+		this.gamePlay.drawUi(GameState.currentMap)
+
+		GameState.setPlayerMove()
+
+		renderUnitsOnBoard.call(this, this.playerTeam.characters, lock, this.playerTeamStartsPositions)
+		renderUnitsOnBoard.call(this, this.opponentTeam.characters, lock, this.opponentTeamStartsPositions)
+		this.gamePlay.redrawPositions(this.unitsWithPosition)
+
+		this.addEvents()
 	}
 
 	createBoardMatrix() {
@@ -61,43 +68,47 @@ export default class GameController {
 		deleteCursorNotification.call(this)
 
 		if (GameState.current()) {
-			const coreCell = checkUnitInCell.call(this, index)
+			this.processPlayer(index)
+		}
+	}
 
-			if (coreCell.check) {
-				const unitWithPositionInCell = this.unitsWithPosition[coreCell.index]
+	processPlayer(index) {
+		const coreCell = checkUnitInCell.call(this, index)
+		if (coreCell.check) {
+			const unitWithPositionInCell = this.unitsWithPosition[coreCell.index]
 
-				if (checkPlayerTeam(unitWithPositionInCell.character)) {
-					selectedUnit.call(this, index, true)
-					GameState.setCurrentUnit(unitWithPositionInCell)
-				} else if (GameState.currentUnit) {
-					if (checkPotentialAttack.call(this, GameState.currentUnit, index)) {
-						attackUnit.call(this, GameState.currentUnit, index)
-					}
-					GameState.deleteCurrentUnit()
-					GameState.upMove()
-					setTimeout(() => {
-						if (!GameState.current()) {
-							choiceOpponentUnit.call(this)
-							GameState.upMove()
-						}
-					}, 1000)
-				} else {
-					selectedUnit.call(this, index, false)
-				}
+			if (checkPlayerTeam(unitWithPositionInCell.character)) {
+				selectedUnit.call(this, index, true)
+				GameState.setCurrentUnit(unitWithPositionInCell)
 			} else if (GameState.currentUnit) {
-				if (checkPotentialMove.call(this, GameState.currentUnit, index)) {
-					movingUnit.call(this, GameState.currentUnit, index)
+				if (checkPotentialAttack.call(this, GameState.currentUnit, index)) {
+					attackUnit.call(this, GameState.currentUnit, index)
+					// GameState.upMove()
 				}
 				GameState.deleteCurrentUnit()
-				GameState.upMove()
-				setTimeout(() => {
-					if (!GameState.current()) {
-						choiceOpponentUnit.call(this)
-						GameState.upMove()
-					}
-				}, 1000)
+			} else {
+				selectedUnit.call(this, index, false)
 			}
+		} else if (GameState.currentUnit) {
+			if (checkPotentialMove.call(this, GameState.currentUnit, index)) {
+				movingUnit.call(this, GameState.currentUnit, index)
+				// GameState.upMove()
+			}
+			GameState.deleteCurrentUnit()
 		}
+
+		if (!GameState.current()) {
+			this.processOpponent()
+		}
+	}
+
+	processOpponent() {
+		setTimeout(() => {
+			if (!GameState.current()) {
+				choiceOpponentUnit.call(this)
+				GameState.upMove()
+			}
+		}, 1000)
 	}
 
 	onCellEnter(index) {
