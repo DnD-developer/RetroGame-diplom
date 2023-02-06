@@ -30,10 +30,14 @@ export function movingUnit(unitWithPosition, indexCursor) {
 
 export async function attackUnit(unitWithPosition, indexCursor) {
 	const unit = unitWithPosition.character
-	const opponent = this.unitsWithPosition.find(elem => elem.position === indexCursor).character
-	const damage = Math.max(unit.attack - opponent.defence, unit.attack * 0.1)
+	const opponentIndex = this.unitsWithPosition.findIndex(elem => elem.position === indexCursor)
+	const damage = Math.max(unit.attack - this.unitsWithPosition[opponentIndex].character.defence, unit.attack * 0.1)
 	await this.gamePlay.showDamage(indexCursor, unit.attack)
-	opponent.health -= damage
+	this.unitsWithPosition[opponentIndex].character.health -= damage
+
+	if (this.unitsWithPosition[opponentIndex].character.health <= 0) {
+		this.unitsWithPosition.splice(opponentIndex, 1)
+	}
 
 	this.gamePlay.redrawPositions(this.unitsWithPosition)
 }
