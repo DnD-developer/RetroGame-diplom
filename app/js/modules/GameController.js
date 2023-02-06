@@ -28,7 +28,7 @@ export default class GameController {
 		this.opponentTeamStartsPositions = generateCollectionsStartPositions(this.gamePlay.boardSize - 2, this.gamePlay.boardSize)
 
 		this.playerTeam = generateTeam(this.playerTeamCharacters, 1, 4)
-		this.opponentTeam = generateTeam(this.opponentTeamCharacters, 1, 1)
+		this.opponentTeam = generateTeam(this.opponentTeamCharacters, 1, 4)
 
 		const positionLock = []
 		this.initNewGame(positionLock)
@@ -83,7 +83,7 @@ export default class GameController {
 			} else if (GameState.currentUnit) {
 				if (checkPotentialAttack.call(this, GameState.currentUnit, index)) {
 					attackUnit.call(this, GameState.currentUnit, index)
-					// GameState.upMove()
+					GameState.upMove()
 				}
 				GameState.deleteCurrentUnit()
 			} else {
@@ -92,7 +92,7 @@ export default class GameController {
 		} else if (GameState.currentUnit) {
 			if (checkPotentialMove.call(this, GameState.currentUnit, index)) {
 				movingUnit.call(this, GameState.currentUnit, index)
-				// GameState.upMove()
+				GameState.upMove()
 			}
 			GameState.deleteCurrentUnit()
 		}
