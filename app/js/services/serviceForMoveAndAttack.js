@@ -42,14 +42,15 @@ export async function attackUnit(unitWithPosition, indexCursor) {
 
 	if (this.unitsWithPosition[opponentIndex].character.health <= 0) {
 		this.unitsWithPosition.splice(opponentIndex, 1)
+
+		initUnitsOfTeamWithPosition.call(this)
+
+		if (this.unitsWithPositionOpponent.length === 0) {
+			levelUp.call(this)
+			return
+		}
 	}
 
-	initUnitsOfTeamWithPosition.call(this)
-
-	if (this.unitsWithPositionOpponent.length === 0) {
-		levelUp.call(this)
-		return
-	}
 	if (this.unitsWithPositionPlayer.length === 0) {
 		// gameOver()
 	}
