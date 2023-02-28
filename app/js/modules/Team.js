@@ -6,9 +6,8 @@ import Undead from "./characters/Undead"
 import Bowman from "./characters/Bowman"
 
 export default class Team {
-	constructor(characters) {
+	constructor() {
 		this.characters = []
-		this.playerTeamCharacters(characters)
 	}
 
 	playerTeamCharacters(characters) {
@@ -36,5 +35,7 @@ export default class Team {
 					break
 			}
 		})
+
+		return this.characters
 	}
 }

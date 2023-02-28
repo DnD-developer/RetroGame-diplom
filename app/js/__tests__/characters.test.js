@@ -14,12 +14,12 @@ describe("Class Character", () => {
 
 describe("Scion of Character", () => {
 	test.each([
-		[Bowman, { level: 1, type: "bowman", health: 50, attack: 200, defence: 25, move: 2, lengthAttack: 2 }],
-		[Swordsman, { level: 1, type: "swordsman", health: 50, attack: 200, defence: 10, move: 4, lengthAttack: 1 }],
-		[Magician, { level: 1, type: "magician", health: 50, attack: 200, defence: 40, move: 1, lengthAttack: 4 }],
-		[Vampire, { level: 1, type: "vampire", health: 50, attack: 25, defence: 25, move: 2, lengthAttack: 2 }],
-		[Undead, { level: 1, type: "undead", health: 50, attack: 40, defence: 10, move: 4, lengthAttack: 1 }],
-		[Daemon, { level: 1, type: "daemon", health: 50, attack: 10, defence: 10, move: 1, lengthAttack: 4 }]
+		[Bowman, { level: 1, team: "player", type: "bowman", health: 50, attack: 25, defence: 25, move: 2, lengthAttack: 2 }],
+		[Swordsman, { level: 1, team: "player", type: "swordsman", health: 50, attack: 40, defence: 10, move: 4, lengthAttack: 1 }],
+		[Magician, { level: 1, team: "player", type: "magician", health: 50, attack: 10, defence: 40, move: 1, lengthAttack: 4 }],
+		[Vampire, { level: 1, team: "enemy", type: "vampire", health: 50, attack: 25, defence: 25, move: 2, lengthAttack: 2 }],
+		[Undead, { level: 1, team: "enemy", type: "undead", health: 50, attack: 40, defence: 10, move: 4, lengthAttack: 1 }],
+		[Daemon, { level: 1, team: "enemy", type: "daemon", health: 50, attack: 10, defence: 10, move: 1, lengthAttack: 4 }]
 	])("test correct create class %i", (TestClass, expected) => {
 		const result = new TestClass(1)
 

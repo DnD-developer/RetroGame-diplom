@@ -1,13 +1,17 @@
 import themes from "./themes"
 
 export default class GameState {
-	static countMove = 0
-	static currentUnit = null
-	static currentLevel = 1
-	static currentMap = themes.prairie
-	static triggerNewGame = true
+	constructor() {
+		this.countMove = 0
+		this.currentUnit = null
+		this.currentLevel = 1
+		this.currentMap = themes.prairie
+		this.triggerNewGame = true
+		this.enemyTeam = ["vampire", "undead", "daemon"]
+		this.playerTeam = ["bowman", "swordsman", "magician"]
+	}
 
-	static current() {
+	current() {
 		if (this.countMove % 2 === 0) {
 			return false
 		}
@@ -15,13 +19,12 @@ export default class GameState {
 		return true
 	}
 
-	static upMove() {
+	upMove() {
 		this.countMove += 1
 	}
 
-	static changeMap() {
-		const currentNumberMap = this.level % 4
-
+	changeMap() {
+		const currentNumberMap = this.currentLevel % 4
 		switch (currentNumberMap) {
 			case 1:
 				this.currentMap = themes.prairie
@@ -38,15 +41,11 @@ export default class GameState {
 		}
 	}
 
-	static setPlayerMove() {
-		this.countMove = 1
-	}
-
-	static setCurrentUnit(object) {
+	setCurrentUnit(object) {
 		this.currentUnit = object
 	}
 
-	static deleteCurrentUnit() {
+	deleteCurrentUnit() {
 		this.currentUnit = null
 	}
 }

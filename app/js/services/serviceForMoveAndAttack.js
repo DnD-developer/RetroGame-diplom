@@ -1,59 +1,44 @@
-import { initUnitsOfTeamWithPosition, levelUp } from "./serviceBasesForGame"
+export default function checkPotentialMove(unitsWithPosition, currentUnit, cellsMatrix, indexCursor) {
+	const diffString = Math.abs(cellsMatrix[currentUnit.position].stringNumber - cellsMatrix[indexCursor].stringNumber)
+	const diffCall = Math.abs(cellsMatrix[currentUnit.position].callNumber - cellsMatrix[indexCursor].callNumber)
+	const checkLocking = unitsWithPosition.findIndex(cell => cell.position === indexCursor)
 
-export default function checkPotentialMove(unitWithPosition, indexCursor) {
-	const dffString = Math.abs(this.cellsMatrix[unitWithPosition.position].stringNumber - this.cellsMatrix[indexCursor].stringNumber)
-	const dffCall = Math.abs(this.cellsMatrix[unitWithPosition.position].callNumber - this.cellsMatrix[indexCursor].callNumber)
-	const checkLocking = this.unitsWithPosition.findIndex(cell => cell.position === indexCursor)
-
-	if (checkLocking === -1 && (dffString === 0 || dffCall === 0 || dffString === dffCall)) {
-		if (dffString <= unitWithPosition.character.move && dffCall <= unitWithPosition.character.move) {
+	if (checkLocking === -1 && (diffString === 0 || diffCall === 0 || diffString === diffCall)) {
+		if (diffString <= currentUnit.character.move && diffCall <= currentUnit.character.move) {
 			return true
 		}
 	}
 	return false
 }
 
-export function checkPotentialAttack(unitWithPosition, indexCursor) {
-	const dffString = Math.abs(this.cellsMatrix[unitWithPosition.position].stringNumber - this.cellsMatrix[indexCursor].stringNumber)
-	const dffCall = Math.abs(this.cellsMatrix[unitWithPosition.position].callNumber - this.cellsMatrix[indexCursor].callNumber)
+export function checkPotentialAttack(currentUnit, cellsMatrix, indexCursor) {
+	const diffString = Math.abs(cellsMatrix[currentUnit.position].stringNumber - cellsMatrix[indexCursor].stringNumber)
+	const diffCall = Math.abs(cellsMatrix[currentUnit.position].callNumber - cellsMatrix[indexCursor].callNumber)
 
-	if (dffString <= unitWithPosition.character.lengthAttack && dffCall <= unitWithPosition.character.lengthAttack) {
+	if (diffString <= currentUnit.character.lengthAttack && diffCall <= currentUnit.character.lengthAttack) {
 		return true
 	}
 
 	return false
 }
 
-export function movingUnit(unitWithPosition, indexCursor) {
-	unitWithPosition.position = indexCursor
+export function movingUnit(unitsWithPosition, currentUnit, gamePlay, indexCursor) {
+	currentUnit.position = indexCursor
 
-	initUnitsOfTeamWithPosition.call(this)
-
-	this.gamePlay.redrawPositions(this.unitsWithPosition)
+	gamePlay.redrawPositions(unitsWithPosition)
 }
 
-export async function attackUnit(unitWithPosition, indexCursor) {
-	const unit = unitWithPosition.character
-	const opponentIndex = this.unitsWithPosition.findIndex(elem => elem.position === indexCursor)
-	const damage = Math.max(unit.attack - this.unitsWithPosition[opponentIndex].character.defence, unit.attack * 0.1)
-	await this.gamePlay.showDamage(indexCursor, unit.attack)
+export async function attackUnit(unitsWithPosition, currentUnit, gamePlay, indexCursor) {
+	const unit = currentUnit.character
+	const opponentIndex = unitsWithPosition.findIndex(elem => elem.position === indexCursor)
+	const damage = Math.max(unit.attack - unitsWithPosition[opponentIndex].character.defence, unit.attack * 0.1)
+	await gamePlay.showDamage(indexCursor, damage)
 
-	this.unitsWithPosition[opponentIndex].character.health -= damage
+	unitsWithPosition[opponentIndex].character.health -= damage
 
-	if (this.unitsWithPosition[opponentIndex].character.health <= 0) {
-		this.unitsWithPosition.splice(opponentIndex, 1)
-
-		initUnitsOfTeamWithPosition.call(this)
-
-		if (this.unitsWithPositionOpponent.length === 0) {
-			levelUp.call(this)
-			return
-		}
+	if (unitsWithPosition[opponentIndex].character.health <= 0) {
+		unitsWithPosition.splice(opponentIndex, 1)
 	}
 
-	if (this.unitsWithPositionPlayer.length === 0) {
-		// gameOver()
-	}
-
-	this.gamePlay.redrawPositions(this.unitsWithPosition)
+	gamePlay.redrawPositions(unitsWithPosition)
 }
