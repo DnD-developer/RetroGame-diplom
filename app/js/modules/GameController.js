@@ -1,10 +1,11 @@
 import GameState from "./GameState"
 import { generateTeam } from "./generators"
 import checkUnitInCell, {
-	createInformation,
 	generateCollectionsStartPositions,
-	renderUnitsOnBoard,
-	checkPlayerTeam
+	givePositionForUnits,
+	generateMessage,
+	initUnitsOfTeamWithPosition,
+	levelUp
 } from "../services/serviceBasesForGame"
 import { selectedUnit, removeSelect, setCursorNotification, deleteCursorNotification } from "../services/serviceForSelectedUnit"
 import checkPotentialMove, { checkPotentialAttack, movingUnit, attackUnit } from "../services/serviceForMoveAndAttack"
@@ -17,31 +18,45 @@ export default class GameController {
 	}
 
 	init() {
-		GameState.currentLevel = 1
+		this.gameState = new GameState()
 
 		this.unitsWithPosition = []
+		this.playerTeam = []
+		this.opponentTeam = []
 
-		this.playerTeamCharacters = ["bowman", "swordsman", "magician"]
-		this.opponentTeamCharacters = ["vampire", "undead", "daemon"]
-
-		this.playerTeamStartsPositions = generateCollectionsStartPositions(0, this.gamePlay.boardSize)
-		this.opponentTeamStartsPositions = generateCollectionsStartPositions(this.gamePlay.boardSize - 2, this.gamePlay.boardSize)
-
-		this.playerTeam = generateTeam(this.playerTeamCharacters, 1, 4)
-		this.opponentTeam = generateTeam(this.opponentTeamCharacters, 1, 4)
-
-		const positionLock = []
-		this.initNewGame(positionLock)
-		this.createBoardMatrix()
+		this.initNewGame()
 	}
 
-	initNewGame(lock) {
-		this.gamePlay.drawUi(GameState.currentMap)
+	initNewGame() {
+		this.gameState.changeMap()
 
-		GameState.setPlayerMove()
+		this.gamePlay.drawUi(this.gameState.currentMap)
 
-		renderUnitsOnBoard.call(this, this.playerTeam.characters, lock, this.playerTeamStartsPositions)
-		renderUnitsOnBoard.call(this, this.opponentTeam.characters, lock, this.opponentTeamStartsPositions)
+		this.createBoardMatrix()
+
+		this.gameState.countMove = 1
+
+		if (this.playerTeam.length === 0) {
+			this.playerTeam = [
+				...givePositionForUnits(
+					generateTeam(this.gameState.playerTeam, this.gameState.currentLevel, 1),
+					generateCollectionsStartPositions(1, this.cellsMatrix)
+				)
+			]
+		}
+
+		this.opponentTeam = [
+			...givePositionForUnits(
+				generateTeam(this.gameState.enemyTeam, this.gameState.currentLevel, 1),
+				generateCollectionsStartPositions(this.gamePlay.boardSize - 1, this.cellsMatrix)
+			)
+		]
+
+		this.unitsWithPosition = [...this.playerTeam, ...this.opponentTeam]
+
+		removeSelect(this.unitsWithPosition, this.gamePlay)
+		deleteCursorNotification(this.gamePlay, this.gameState.currentUnit)
+
 		this.gamePlay.redrawPositions(this.unitsWithPosition)
 
 		this.addEvents()
@@ -64,60 +79,87 @@ export default class GameController {
 	}
 
 	onCellClick(index) {
-		removeSelect.call(this)
-		deleteCursorNotification.call(this)
+		removeSelect(this.unitsWithPosition, this.gamePlay)
+		deleteCursorNotification(this.gamePlay, this.gameState.currentUnit)
 
-		if (GameState.current()) {
+		if (this.gameState.current()) {
 			this.processPlayer(index)
 		}
 	}
 
-	processPlayer(index) {
-		const coreCell = checkUnitInCell.call(this, index)
-		if (coreCell.check) {
-			const unitWithPositionInCell = this.unitsWithPosition[coreCell.index]
+	async processPlayer(index) {
+		const infoCell = checkUnitInCell(this.unitsWithPosition, index)
 
-			if (checkPlayerTeam(unitWithPositionInCell.character)) {
-				selectedUnit.call(this, index, true)
-				GameState.setCurrentUnit(unitWithPositionInCell)
-			} else if (GameState.currentUnit) {
-				if (checkPotentialAttack.call(this, GameState.currentUnit, index)) {
-					attackUnit.call(this, GameState.currentUnit, index)
-					GameState.upMove()
+		if (infoCell.check) {
+			const unitWithPositionInCell = this.unitsWithPosition[infoCell.index]
+
+			if (unitWithPositionInCell.character.team === "player") {
+				selectedUnit(index, true, this.gamePlay, this.gameState)
+
+				this.gameState.setCurrentUnit(unitWithPositionInCell)
+			} else if (this.gameState.currentUnit) {
+				if (checkPotentialAttack(this.gameState.currentUnit, this.cellsMatrix, index)) {
+					await attackUnit(this.unitsWithPosition, this.gameState.currentUnit, this.gamePlay, index)
+
+					const segmentedTeam = initUnitsOfTeamWithPosition(this.unitsWithPosition)
+
+					this.playerTeam = segmentedTeam.playerTeam
+					this.opponentTeam = segmentedTeam.opponentTeam
+
+					if (this.opponentTeam.length === 0) {
+						this.playerTeam = [
+							...givePositionForUnits(levelUp(this.playerTeam, this.gameState), generateCollectionsStartPositions(1, this.cellsMatrix))
+						]
+						this.initNewGame()
+						return
+					}
+					if (this.playerTeam.length === 0) {
+						// gameOver()
+						return
+					}
+					this.gameState.upMove()
 				}
-				GameState.deleteCurrentUnit()
+
+				this.gameState.deleteCurrentUnit()
 			} else {
-				selectedUnit.call(this, index, false)
+				selectedUnit(index, false, this.gamePlay, this.gameState)
 			}
-		} else if (GameState.currentUnit) {
-			if (checkPotentialMove.call(this, GameState.currentUnit, index)) {
-				movingUnit.call(this, GameState.currentUnit, index)
-				GameState.upMove()
+		} else if (this.gameState.currentUnit) {
+			if (checkPotentialMove(this.unitsWithPosition, this.gameState.currentUnit, this.cellsMatrix, index)) {
+				movingUnit(this.unitsWithPosition, this.gameState.currentUnit, this.gamePlay, index)
+
+				const segmentedTeam = initUnitsOfTeamWithPosition(this.unitsWithPosition)
+
+				this.playerTeam = segmentedTeam.playerTeam
+				this.opponentTeam = segmentedTeam.opponentTeam
+				this.gameState.upMove()
 			}
-			GameState.deleteCurrentUnit()
+
+			this.gameState.deleteCurrentUnit()
 		}
 
-		if (!GameState.current()) {
+		if (this.gameState.countMove % 2 === 0) {
 			this.processOpponent()
 		}
 	}
 
 	processOpponent() {
-		setTimeout(() => {
-			if (!GameState.current()) {
-				choiceOpponentUnit.call(this)
-				GameState.upMove()
-			}
-		}, 1000)
+		choiceOpponentUnit(this.playerTeam, this.opponentTeam, this.cellsMatrix, this.unitsWithPosition, this.gamePlay)
+		this.gameState.upMove()
 	}
 
 	onCellEnter(index) {
-		if (checkUnitInCell.call(this, index).check) {
-			createInformation.call(this, checkUnitInCell.call(this, index).index, index)
-		}
+		const infoCell = checkUnitInCell(this.unitsWithPosition, index)
 
-		if (GameState.currentUnit) {
-			setCursorNotification.call(this, index)
+		if (infoCell.check) {
+			const unit = this.unitsWithPosition[infoCell.index].character
+
+			const message = generateMessage(unit.level, unit.attack, unit.defence, unit.health)
+
+			this.gamePlay.showCellTooltip(message, index)
+		}
+		if (this.gameState.currentUnit) {
+			setCursorNotification(index, infoCell, this.unitsWithPosition, this.gamePlay, this.gameState.currentUnit, this.cellsMatrix)
 		}
 	}
 

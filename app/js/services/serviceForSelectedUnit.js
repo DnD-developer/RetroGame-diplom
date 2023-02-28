@@ -1,50 +1,46 @@
-import GameState from "../modules/GameState"
 import cursors from "../modules/cursors"
-import checkUnitInCell, { checkPlayerTeam } from "./serviceBasesForGame"
 import checkPotentialMove, { checkPotentialAttack } from "./serviceForMoveAndAttack"
 
-export function selectedUnit(index, team) {
-	if (team) {
-		this.gamePlay.selectCell(index)
+export function selectedUnit(index, own, gamePlay, gameState) {
+	if (own) {
+		gamePlay.selectCell(index)
 	} else {
-		this.gamePlay.showError("Персонаж противника", index)
+		gamePlay.showError("Персонаж противника", index)
 	}
 
-	GameState.deleteCurrentUnit()
+	gameState.deleteCurrentUnit()
 }
 
-export function removeSelect() {
-	this.unitsWithPosition.forEach(unit => this.gamePlay.deselectCell(unit.position))
+export function removeSelect(unitsWithPosition, gamePlay) {
+	unitsWithPosition.forEach(unit => gamePlay.deselectCell(unit.position))
 }
 
-export function deleteCursorNotification() {
-	this.gamePlay.setCursor(cursors.auto)
+export function deleteCursorNotification(gamePlay, currentUnit) {
+	gamePlay.setCursor(cursors.auto)
 
-	for (let index = 0; index < this.gamePlay.boardSize * this.gamePlay.boardSize; index += 1) {
-		if (GameState.currentUnit && GameState.currentUnit.position !== index) {
-			this.gamePlay.deselectCell(index)
+	for (let index = 0; index < gamePlay.boardSize * gamePlay.boardSize; index += 1) {
+		if (currentUnit && currentUnit.position !== index) {
+			gamePlay.deselectCell(index)
 		}
 	}
 }
 
-export function setCursorNotification(index) {
-	const coreCell = checkUnitInCell.call(this, index)
+export function setCursorNotification(index, infoCell, unitsWithPosition, gamePlay, currentUnit, cellsMatrix) {
+	deleteCursorNotification(gamePlay, currentUnit)
 
-	deleteCursorNotification.call(this)
-
-	if (coreCell.check) {
-		if (checkPlayerTeam(this.unitsWithPosition[coreCell.index].character)) {
-			this.gamePlay.setCursor(cursors.pointer)
-		} else if (checkPotentialAttack.call(this, GameState.currentUnit, index)) {
-			this.gamePlay.setCursor(cursors.crosshair)
-			this.gamePlay.selectCell(index, "red")
+	if (infoCell.check) {
+		if (unitsWithPosition[infoCell.index].character.team === "player") {
+			gamePlay.setCursor(cursors.pointer)
+		} else if (checkPotentialAttack(currentUnit, cellsMatrix, index)) {
+			gamePlay.setCursor(cursors.crosshair)
+			gamePlay.selectCell(index, "red")
 		} else {
-			this.gamePlay.setCursor(cursors.notallowed)
+			gamePlay.setCursor(cursors.notallowed)
 		}
-	} else if (checkPotentialMove.call(this, GameState.currentUnit, index)) {
-		this.gamePlay.setCursor(cursors.pointer)
-		this.gamePlay.selectCell(index, "green")
+	} else if (checkPotentialMove(unitsWithPosition, currentUnit, cellsMatrix, index)) {
+		gamePlay.setCursor(cursors.pointer)
+		gamePlay.selectCell(index, "green")
 	} else {
-		this.gamePlay.setCursor(cursors.notallowed)
+		gamePlay.setCursor(cursors.notallowed)
 	}
 }

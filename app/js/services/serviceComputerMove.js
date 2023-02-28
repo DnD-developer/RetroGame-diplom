@@ -12,24 +12,13 @@ function selectMinUnit(teamArray, property) {
 	return min
 }
 
-function selectMaxUnit(teamArray, property) {
-	let [max] = teamArray
-
-	teamArray.forEach(unit => {
-		if (unit.character[property] > max.character[property]) {
-			max = unit
-		}
-	})
-
-	return max
-}
-function diffLength(goal, start) {
-	const diffString = (this.cellsMatrix[goal].stringNumber - this.cellsMatrix[start].stringNumber) ** 2
-	const diffCall = (this.cellsMatrix[goal].callNumber - this.cellsMatrix[start].callNumber) ** 2
+function diffLength(goal, start, cellsMatrix) {
+	const diffString = (cellsMatrix[goal].stringNumber - cellsMatrix[start].stringNumber) ** 2
+	const diffCall = (cellsMatrix[goal].callNumber - cellsMatrix[start].callNumber) ** 2
 	return Math.sqrt(diffString + diffCall)
 }
 
-function choiseNearUnitForGoal({ goal = null, start = null, teamArray }) {
+function choiseNearUnitForGoal({ goal = null, start = null, teamArray, cellsMatrix }) {
 	let [minPlayer] = teamArray
 	let [minOpponent] = teamArray
 
@@ -41,17 +30,17 @@ function choiseNearUnitForGoal({ goal = null, start = null, teamArray }) {
 		minOpponent = start
 	}
 
-	let diffMin = diffLength.call(this, minPlayer.position, minOpponent.position)
+	let diffMin = diffLength(minPlayer.position, minOpponent.position, cellsMatrix)
 
 	teamArray.forEach(unit => {
 		let difLength
 
 		if (goal) {
-			difLength = diffLength.call(this, minPlayer.position, unit.position)
+			difLength = diffLength(minPlayer.position, unit.position, cellsMatrix)
 		}
 
 		if (start) {
-			difLength = diffLength.call(this, unit.position, minOpponent.position)
+			difLength = diffLength(unit.position, minOpponent.position, cellsMatrix)
 		}
 
 		if (difLength < diffMin) {
@@ -68,14 +57,14 @@ function choiseNearUnitForGoal({ goal = null, start = null, teamArray }) {
 	return { minPlayer, minOpponent, diffMin }
 }
 
-function selectMinNearUnit() {
-	let [minPlayer] = this.unitsWithPositionPlayer
-	let [minOpponent] = this.unitsWithPositionOpponent
+function selectMinNearUnit(playerTeam, opponentTeam, cellsMatrix) {
+	let [minPlayer] = playerTeam
+	let [minOpponent] = opponentTeam
 
-	let diffMin = diffLength.call(this, minPlayer.position, minOpponent.position)
-	this.unitsWithPositionOpponent.forEach(stU => {
-		this.unitsWithPositionPlayer.forEach(unit => {
-			const difLength = diffLength.call(this, stU.position, unit.position)
+	let diffMin = diffLength(minPlayer.position, minOpponent.position, cellsMatrix)
+	opponentTeam.forEach(stU => {
+		playerTeam.forEach(unit => {
+			const difLength = diffLength(stU.position, unit.position, cellsMatrix)
 
 			if (difLength < diffMin) {
 				diffMin = difLength
@@ -87,22 +76,22 @@ function selectMinNearUnit() {
 	return { minPlayer, minOpponent, diffMin }
 }
 
-function initArrayCellsforMove(trend, start) {
+function initArrayCellsforMove(trend, start, cellsMatrix, unitsWithPosition) {
 	const arrayCellsforMove = []
-	const startPosition = this.cellsMatrix[start.position]
+	const startPosition = cellsMatrix[start.position]
 
 	for (let string = 0; string <= start.character.move; string += 1) {
 		for (let call = 0; call <= start.character.move; call += 1) {
 			let goalIndex
 
 			if (!(call === 0 && string === 0)) {
-				goalIndex = this.cellsMatrix.findIndex(
+				goalIndex = cellsMatrix.findIndex(
 					cell => cell.stringNumber === startPosition.stringNumber + string * trend && cell.callNumber === startPosition.callNumber + call * trend
 				)
 			}
 
 			if (goalIndex && goalIndex !== -1) {
-				if (checkPotentialMove.call(this, start, goalIndex)) {
+				if (checkPotentialMove(unitsWithPosition, start, cellsMatrix, goalIndex)) {
 					arrayCellsforMove.push(goalIndex)
 				}
 			}
@@ -112,23 +101,23 @@ function initArrayCellsforMove(trend, start) {
 	return arrayCellsforMove
 }
 
-function calculateMoveForComputer(goal, start) {
-	const callTrend = this.cellsMatrix[goal.position].callNumber - this.cellsMatrix[start.position].callNumber
+function calculateMoveForComputer(goal, start, cellsMatrix, gamePlay, unitsWithPosition) {
+	const callTrend = cellsMatrix[goal.position].callNumber - cellsMatrix[start.position].callNumber
 	let arrayCellsforMove = []
-	if (callTrend <= 0 && this.cellsMatrix[start.position].callNumber !== 1) {
-		arrayCellsforMove = [...initArrayCellsforMove.call(this, -1, start)]
+	if (callTrend <= 0 && cellsMatrix[start.position].callNumber !== 1) {
+		arrayCellsforMove = [...initArrayCellsforMove(-1, start, cellsMatrix, unitsWithPosition)]
 	}
 
-	if (callTrend >= 0 && this.cellsMatrix[start.position].callNumber !== this.gamePlay.boardSize) {
-		arrayCellsforMove = [...initArrayCellsforMove.call(this, 1, start)]
+	if (callTrend >= 0 && cellsMatrix[start.position].callNumber !== gamePlay.boardSize) {
+		arrayCellsforMove = [...initArrayCellsforMove(1, start, cellsMatrix, unitsWithPosition)]
 	}
 
 	let [nearCell] = arrayCellsforMove
 	if (nearCell) {
-		let diffMin = diffLength.call(this, goal.position, nearCell)
+		let diffMin = diffLength(goal.position, nearCell, cellsMatrix)
 
 		arrayCellsforMove.forEach(cell => {
-			const difLength = diffLength.call(this, goal.position, cell)
+			const difLength = diffLength(goal.position, cell, cellsMatrix)
 
 			if (difLength < diffMin) {
 				nearCell = cell
@@ -140,70 +129,46 @@ function calculateMoveForComputer(goal, start) {
 	return nearCell
 }
 
-function definePotentialMove() {
-	const nearPlayer = calculateMoveForComputer.call(this, this.minNearPlayerUnit.minPlayer, this.minNearPlayerUnit.minOpponent)
-	const maxDangerPlayer = calculateMoveForComputer.call(this, this.maxDangerPlayerUnit.minPlayer, this.maxDangerOpponentUnit.minOpponent)
+function definePotentialMove({ unitsWithPosition, cellsMatrix, minNearPlayerUnit, gamePlay }) {
+	const nearPlayer = calculateMoveForComputer(minNearPlayerUnit.minPlayer, minNearPlayerUnit.minOpponent, cellsMatrix, gamePlay, unitsWithPosition)
 
 	switch (true) {
 		case nearPlayer && nearPlayer.length !== 0:
-			movingUnit.call(this, this.minNearPlayerUnit.minOpponent, nearPlayer)
-			break
-		case maxDangerPlayer && maxDangerPlayer.length !== 0:
-			movingUnit.call(this, this.maxDangerOpponentUnit.minOpponent, maxDangerPlayer)
+			movingUnit(unitsWithPosition, minNearPlayerUnit.minOpponent, gamePlay, nearPlayer)
 			break
 		default:
 			break
 	}
 }
 
-function definePotentialAttack() {
+async function definePotentialAttack({ minHealthPlayerUnit, minNearPlayerUnit, cellsMatrix, unitsWithPosition, gamePlay }) {
 	switch (true) {
-		case checkPotentialAttack.call(this, this.minHealthPlayerUnit.minOpponent, this.minHealthPlayerUnit.minPlayer.position):
-			attackUnit.call(this, this.minHealthPlayerUnit.minOpponent, this.minHealthPlayerUnit.minPlayer.position)
+		case checkPotentialAttack(minHealthPlayerUnit.minOpponent, cellsMatrix, minHealthPlayerUnit.minPlayer.position):
+			await attackUnit(unitsWithPosition, minHealthPlayerUnit.minOpponent, gamePlay, minHealthPlayerUnit.minPlayer.position)
 			break
-		case checkPotentialAttack.call(this, this.maxDangerOpponentUnit.minOpponent, this.maxDangerPlayerUnit.minPlayer.position):
-			attackUnit.call(this, this.maxDangerOpponentUnit.minOpponent, this.maxDangerPlayerUnit.minPlayer.position)
-			break
-		case checkPotentialAttack.call(this, this.maxDangerOpponentUnit.minOpponent, this.maxDangerOpponentUnit.minPlayer.position):
-			attackUnit.call(this, this.maxDangerOpponentUnit.minOpponent, this.maxDangerOpponentUnit.minPlayer.position)
-			break
-		case checkPotentialAttack.call(this, this.maxHealthOpponentUnit.minOpponent, this.maxDangerPlayerUnit.minPlayer.position):
-			attackUnit.call(this, this.maxHealthOpponentUnit.minOpponent, this.maxDangerPlayerUnit.minPlayer.position)
-			break
-		case checkPotentialAttack.call(this, this.maxHealthOpponentUnit.minOpponent, this.maxHealthOpponentUnit.minPlayer.position):
-			attackUnit.call(this, this.maxHealthOpponentUnit.minOpponent, this.maxHealthOpponentUnit.minPlayer.position)
-			break
-		case checkPotentialAttack.call(this, this.minNearPlayerUnit.minOpponent, this.minNearPlayerUnit.minPlayer.position):
-			attackUnit.call(this, this.minNearPlayerUnit.minOpponent, this.minNearPlayerUnit.minPlayer.position)
+		case checkPotentialAttack(minNearPlayerUnit.minOpponent, cellsMatrix, minNearPlayerUnit.minPlayer.position):
+			await attackUnit(unitsWithPosition, minNearPlayerUnit.minOpponent, gamePlay, minNearPlayerUnit.minPlayer.position)
 			break
 		default:
-			definePotentialMove.call(this)
+			definePotentialMove({ unitsWithPosition, cellsMatrix, minNearPlayerUnit, gamePlay })
 			break
 	}
 }
 
-export default function choiceOpponentUnit() {
-	this.minHealthPlayerUnit = choiseNearUnitForGoal.call(this, {
-		goal: selectMinUnit(this.unitsWithPositionPlayer, "health"),
-		teamArray: this.unitsWithPositionOpponent
+export default function choiceOpponentUnit(playerTeam, opponentTeam, cellsMatrix, unitsWithPosition, gamePlay) {
+	const choiseGoal = {
+		cellsMatrix,
+		unitsWithPosition,
+		gamePlay
+	}
+
+	choiseGoal.minHealthPlayerUnit = choiseNearUnitForGoal({
+		goal: selectMinUnit(playerTeam, "health"),
+		teamArray: opponentTeam,
+		cellsMatrix
 	})
 
-	this.minNearPlayerUnit = selectMinNearUnit.call(this)
+	choiseGoal.minNearPlayerUnit = selectMinNearUnit(playerTeam, opponentTeam, cellsMatrix)
 
-	this.maxDangerPlayerUnit = choiseNearUnitForGoal.call(this, {
-		goal: selectMaxUnit(this.unitsWithPositionPlayer, "attack"),
-		teamArray: this.unitsWithPositionOpponent
-	})
-
-	this.maxHealthOpponentUnit = choiseNearUnitForGoal.call(this, {
-		start: selectMaxUnit(this.unitsWithPositionOpponent, "health"),
-		teamArray: this.unitsWithPositionPlayer
-	})
-
-	this.maxDangerOpponentUnit = choiseNearUnitForGoal.call(this, {
-		start: selectMaxUnit(this.unitsWithPositionOpponent, "attack"),
-		teamArray: this.unitsWithPositionPlayer
-	})
-
-	definePotentialAttack.call(this)
+	definePotentialAttack(choiseGoal)
 }

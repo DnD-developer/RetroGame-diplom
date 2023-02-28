@@ -15,5 +15,5 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) {
 	for (let index = 0; index < characterCount; index += 1) {
 		team.push(playerGenerator.next().value)
 	}
-	return new Team(team)
+	return new Team().playerTeamCharacters(team)
 }
