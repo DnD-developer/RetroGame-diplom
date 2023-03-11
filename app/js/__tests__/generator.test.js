@@ -24,9 +24,8 @@ describe("Function generateTeam:", () => {
 		{ data: ["undead", "daemon", "vampire"], count: 100, level: 1 }
 	])("test count Called $count and maxLevel $level", ({ data, count, level }) => {
 		const testTeam = generateTeam(data, level, count)
+		expect(testTeam).toHaveLength(count)
 
-		expect(testTeam.characters).toHaveLength(count)
-
-		testTeam.characters.forEach(item => expect(item.level).toBeLessThanOrEqual(level))
+		testTeam.forEach(item => expect(item.level).toBeLessThanOrEqual(level))
 	})
 })

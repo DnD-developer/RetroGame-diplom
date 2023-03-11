@@ -1,5 +1,6 @@
 import GameState from "./GameState"
 import { generateTeam } from "./generators"
+import Bowman from "./characters/Bowman"
 import checkUnitInCell, {
 	generateCollectionsStartPositions,
 	givePositionForUnits,
@@ -27,7 +28,7 @@ export default class GameController {
 		this.initNewGame()
 	}
 
-	initNewGame() {
+	initNewGame(load = null) {
 		this.gameState.changeMap()
 
 		this.gamePlay.drawUi(this.gameState.currentMap)
@@ -36,21 +37,23 @@ export default class GameController {
 
 		this.gameState.countMove = 1
 
-		if (this.playerTeam.length === 0) {
-			this.playerTeam = [
+		if (!load) {
+			if (this.playerTeam.length === 0) {
+				this.playerTeam = [
+					...givePositionForUnits(
+						generateTeam(this.gameState.playerTeam, this.gameState.currentLevel, 4),
+						generateCollectionsStartPositions(1, this.cellsMatrix)
+					)
+				]
+			}
+
+			this.opponentTeam = [
 				...givePositionForUnits(
-					generateTeam(this.gameState.playerTeam, this.gameState.currentLevel, 1),
-					generateCollectionsStartPositions(1, this.cellsMatrix)
+					generateTeam(this.gameState.enemyTeam, this.gameState.currentLevel, 4),
+					generateCollectionsStartPositions(this.gamePlay.boardSize - 1, this.cellsMatrix)
 				)
 			]
 		}
-
-		this.opponentTeam = [
-			...givePositionForUnits(
-				generateTeam(this.gameState.enemyTeam, this.gameState.currentLevel, 1),
-				generateCollectionsStartPositions(this.gamePlay.boardSize - 1, this.cellsMatrix)
-			)
-		]
 
 		this.unitsWithPosition = [...this.playerTeam, ...this.opponentTeam]
 
@@ -76,6 +79,52 @@ export default class GameController {
 		this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this))
 		this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this))
 		this.gamePlay.addCellClickListener(this.onCellClick.bind(this))
+
+		document.querySelector("[data-id='action-restart']").addEventListener("click", this.init.bind(this))
+
+		document.querySelector("[data-id='action-save']").addEventListener("click", () => {
+			localStorage.setItem(
+				"save-game",
+				JSON.stringify({
+					playerTeam: this.playerTeam,
+					opponentTeam: this.opponentTeam,
+					gameState: this.gameState
+				})
+			)
+		})
+
+		document.querySelector("[data-id='action-load']").addEventListener("click", () => {
+			const load = JSON.parse(localStorage.getItem("save-game"))
+
+			if (!load) {
+				return
+			}
+
+			this.gameState = load.gameState || new GameState()
+			this.playerTeam = load.playerTeam || []
+			this.opponentTeam = load.opponentTeam || []
+
+			const goalProto = new Bowman(1).__proto__.__proto__
+			const goalStateProto = new GameState().__proto__
+
+			if (this.playerTeam.length !== 0) {
+				this.playerTeam = this.playerTeam.map(unit => {
+					unit.character.__proto__ = goalProto
+					return unit
+				})
+			}
+
+			if (this.opponentTeam.length !== 0) {
+				this.opponentTeam = this.opponentTeam.map(unit => {
+					unit.character.__proto__ = goalProto
+					return unit
+				})
+			}
+
+			this.gameState.__proto__ = goalStateProto
+
+			this.initNewGame(true)
+		})
 	}
 
 	onCellClick(index) {
