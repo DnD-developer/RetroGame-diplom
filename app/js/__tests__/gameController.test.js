@@ -118,7 +118,10 @@ describe("Moving", () => {
 	])("test potential move for $unit", ({ className, result }) => {
 		const boardMove = []
 		for (let i = 0; i < 64; i += 1) {
-			if (checkPotentialMove.call(cellsObjectMatrix, { position: start, character: className }, i) && i !== start) {
+			if (
+				checkPotentialMove(cellsObjectMatrix.unitsWithPosition, { position: start, character: className }, cellsObjectMatrix.cellsMatrix, i) &&
+				i !== start
+			) {
 				boardMove.push(i)
 			}
 		}
@@ -198,7 +201,7 @@ describe("Attack", () => {
 	])("test potential attack for $unit", ({ className, result }) => {
 		const boardMove = []
 		for (let i = 0; i < 64; i += 1) {
-			if (checkPotentialAttack.call(cellsObjectMatrix, { position: start, character: className }, i)) {
+			if (checkPotentialAttack({ position: start, character: className }, cellsObjectMatrix.cellsMatrix, i)) {
 				boardMove.push(i)
 			}
 		}

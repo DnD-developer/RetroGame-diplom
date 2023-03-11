@@ -39,7 +39,7 @@ export default class GameController {
 		if (this.playerTeam.length === 0) {
 			this.playerTeam = [
 				...givePositionForUnits(
-					generateTeam(this.gameState.playerTeam, this.gameState.currentLevel, 1),
+					generateTeam(this.gameState.playerTeam, this.gameState.currentLevel, 4),
 					generateCollectionsStartPositions(1, this.cellsMatrix)
 				)
 			]
@@ -47,7 +47,7 @@ export default class GameController {
 
 		this.opponentTeam = [
 			...givePositionForUnits(
-				generateTeam(this.gameState.enemyTeam, this.gameState.currentLevel, 1),
+				generateTeam(this.gameState.enemyTeam, this.gameState.currentLevel, 4),
 				generateCollectionsStartPositions(this.gamePlay.boardSize - 1, this.cellsMatrix)
 			)
 		]

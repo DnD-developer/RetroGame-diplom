@@ -52,6 +52,7 @@
 			{
 				"enforceForRenamedProperties": false
 			}
-		]
+		],
+		"operator-linebreak": [0]
 	}
 }
